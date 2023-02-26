@@ -11,10 +11,8 @@ def download_wikipedia_data(
     download_path: str = "./",
     file_name: str = "vector_database_wikipedia_articles_embedded") -> pd.DataFrame:
 
-    data_url = 'https://cdn.openai.com/API/examples/data/vector_database_wikipedia_articles_embedded.zip'
-
-    csv_file_path = os.path.join(data_path, file_name + ".csv")
-    zip_file_path = os.path.join(download_path, file_name + ".zip")
+    csv_file_path = os.path.join(data_path, f"{file_name}.csv")
+    zip_file_path = os.path.join(download_path, f"{file_name}.zip")
     if os.path.isfile(csv_file_path):
         print("File Downloaded")
     else:
@@ -22,6 +20,8 @@ def download_wikipedia_data(
             print("Zip downloaded but not unzipped, unzipping now...")
         else:
             print("File not found, downloading now...")
+            data_url = 'https://cdn.openai.com/API/examples/data/vector_database_wikipedia_articles_embedded.zip'
+
             # Download the data
             wget.download(data_url, out=download_path, bar=True)
 
@@ -36,7 +36,7 @@ def download_wikipedia_data(
 
 def read_wikipedia_data(data_path: str = '../../data/', file_name: str = "vector_database_wikipedia_articles_embedded") -> pd.DataFrame:
 
-    csv_file_path = os.path.join(data_path, file_name + ".csv")
+    csv_file_path = os.path.join(data_path, f"{file_name}.csv")
     data = pd.read_csv(csv_file_path)
     # Read vectors from strings back into a list
     data['title_vector'] = data.title_vector.apply(literal_eval)

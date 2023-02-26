@@ -14,10 +14,7 @@ def extract_instruction(instruction):
     Extract `instruction` parameter and format it properly.
     If not exist, return empty string.
     """
-    if instruction is None:
-        return ""
-
-    return f"{instruction.strip()}\n\n"
+    return "" if instruction is None else f"{instruction.strip()}\n\n"
 
 
 def semantic_search(
@@ -163,7 +160,7 @@ def answers(
     }
     """
 
-    examples = examples if examples else []
+    examples = examples or []
 
     example_prompts = [f"Q: {x}\nA: {y}" for x, y in examples]
     prompt = f"Q: {question}\nA:"
@@ -190,7 +187,7 @@ def answers(
     n_context_tokens = len(tokenizer.encode(CONTEXT_TEMPLATE.format(context="")))
 
     if documents is not None:
-        documents = [doc.strip() + " " for doc in documents]
+        documents = [f"{doc.strip()} " for doc in documents]
         n_docs_tokens = [len(tokenizer.encode(doc)) for doc in documents]
 
     # Except all the required content, how many tokens left for context stuffing.

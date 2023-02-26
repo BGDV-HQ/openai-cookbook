@@ -159,8 +159,8 @@ def classifications(
     """
 
     query = query.replace("\n", " ").strip()
-    logit_bias = logit_bias if logit_bias else {}
-    labels = labels if labels else []
+    logit_bias = logit_bias or {}
+    labels = labels or []
 
     if file is None and examples is None:
         raise Exception("Please submit at least one of `examples` or `file`.")

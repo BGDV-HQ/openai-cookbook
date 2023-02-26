@@ -113,7 +113,7 @@ def crawl(url):
     queue = deque([url])
 
     # Create a set to store the URLs that have already been seen (no duplicates)
-    seen = set([url])
+    seen = {url}
 
     # Create a directory to store the text files
     if not os.path.exists("text/"):
@@ -145,7 +145,7 @@ def crawl(url):
             # If the crawler gets to a page that requires JavaScript, it will stop the crawl
             if ("You need to enable JavaScript to run this app." in text):
                 print("Unable to parse page " + url + " due to JavaScript being required")
-            
+
             # Otherwise, write the text to the file in the text directory
             f.write(text)
 
