@@ -15,7 +15,7 @@ logging.basicConfig(
 )
 
 def get_pinecone_id_for_file_chunk(session_id, filename, chunk_index):
-    return str(session_id+"-!"+filename+"-!"+str(chunk_index))
+    return str(f"{session_id}-!{filename}-!{str(chunk_index)}")
 
 def get_embedding(text, engine):
     return openai.Engine(id=engine).embeddings(input=[text])["data"][0]["embedding"]
@@ -29,10 +29,9 @@ def get_embeddings(text_array, engine):
         try:
             return openai.Engine(id=engine).embeddings(input=text_array)["data"]
         except Exception as e:
-            if max_retries > 0:
-                logging.info(f"Request failed. Retrying in {base_delay} seconds.")
-                time.sleep(base_delay)
-                max_retries -= 1
-                base_delay *= factor
-            else:
+            if max_retries <= 0:
                 raise e
+            logging.info(f"Request failed. Retrying in {base_delay} seconds.")
+            time.sleep(base_delay)
+            max_retries -= 1
+            base_delay *= factor

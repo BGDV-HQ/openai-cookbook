@@ -35,8 +35,7 @@ def get_candidates(
         stop=stop,
         n=n,
     )
-    responses = [priming_prefix + choice.text for choice in response.choices]
-    return responses
+    return [priming_prefix + choice.text for choice in response.choices]
 
 
 def rindex(lst: List, value: str) -> int:
@@ -144,9 +143,7 @@ def backtranslation(
         candidates.append((responses[i], quality))
 
     candidates.sort(key=lambda x: x[1], reverse=True)
-    if return_all_results:
-        return candidates
-    return candidates[0][0]
+    return candidates if return_all_results else candidates[0][0]
 
 
 def main(

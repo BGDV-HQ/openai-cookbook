@@ -41,12 +41,10 @@ def load_pinecone_index() -> pinecone.Index:
         environment=PINECONE_ENV,
     )
     index_name = PINECONE_INDEX
-    if not index_name in pinecone.list_indexes():
+    if index_name not in pinecone.list_indexes():
         print(pinecone.list_indexes())
         raise KeyError(f"Index '{index_name}' does not exist.")
-    index = pinecone.Index(index_name)
-
-    return index
+    return pinecone.Index(index_name)
 
 def create_app():
     pinecone_index = load_pinecone_index()
@@ -65,7 +63,7 @@ def create_app():
 
 app = create_app()
 
-@app.route(f"/process_file", methods=["POST"])
+@app.route("/process_file", methods=["POST"])
 @cross_origin(supports_credentials=True)
 def process_file():
     try:
@@ -78,16 +76,16 @@ def process_file():
         logging.error(str(e))
         return jsonify({"success": False})
 
-@app.route(f"/answer_question", methods=["POST"])
+@app.route("/answer_question", methods=["POST"])
 @cross_origin(supports_credentials=True)
 def answer_question():
     try:
         params = request.get_json()
         question = params["question"]
 
-        answer_question_response = get_answer_from_files(
-            question, app.session_id, app.pinecone_index)
-        return answer_question_response
+        return get_answer_from_files(
+            question, app.session_id, app.pinecone_index
+        )
     except Exception as e:
         return str(e)
 

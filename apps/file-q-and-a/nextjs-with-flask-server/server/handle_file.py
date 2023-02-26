@@ -23,7 +23,7 @@ logging.basicConfig(
 def handle_file(file, session_id, pinecone_index, tokenizer):
     """Handle a file by extracting its text, creating embeddings, and upserting them to Pinecone."""
     filename = file.filename
-    logging.info("[handle_file] Handling file: {}".format(filename))
+    logging.info(f"[handle_file] Handling file: {filename}")
 
     # Get the file text dict from the current app config
     file_text_dict = current_app.config["file_text_dict"]
@@ -32,8 +32,7 @@ def handle_file(file, session_id, pinecone_index, tokenizer):
     try:
         extracted_text = extract_text_from_file(file)
     except ValueError as e:
-        logging.error(
-            "[handle_file] Error extracting text from file: {}".format(e))
+        logging.error(f"[handle_file] Error extracting text from file: {e}")
         raise e
 
     # Save extracted text to file text dict
@@ -48,9 +47,7 @@ def extract_text_from_file(file):
     if file.mimetype == "application/pdf":
         # Extract text from pdf using PyPDF2
         reader = PdfReader(file)
-        extracted_text = ""
-        for page in reader.pages:
-            extracted_text += page.extract_text()
+        extracted_text = "".join(page.extract_text() for page in reader.pages)
     elif file.mimetype == "text/plain":
         # Read text from plain text file
         extracted_text = file.read().decode("utf-8")
@@ -60,7 +57,7 @@ def extract_text_from_file(file):
         extracted_text = docx2txt.process(file)
     else:
         # Unsupported file type
-        raise ValueError("Unsupported file type: {}".format(file.mimetype))
+        raise ValueError(f"Unsupported file type: {file.mimetype}")
 
     return extracted_text
 
@@ -73,18 +70,15 @@ def handle_file_string(filename, session_id, file_body_string, pinecone_index, t
     clean_file_body_string = file_body_string.replace(
         "\n", "; ").replace("  ", " ")
     # Add the filename to the text to embed
-    text_to_embed = "Filename is: {}; {}".format(
-        filename, clean_file_body_string)
+    text_to_embed = f"Filename is: {filename}; {clean_file_body_string}"
 
     # Create embeddings for the text
     try:
         text_embeddings, average_embedding = create_embeddings_for_text(
             text_to_embed, tokenizer)
-        logging.info(
-            "[handle_file_string] Created embedding for {}".format(filename))
+        logging.info(f"[handle_file_string] Created embedding for {filename}")
     except Exception as e:
-        logging.error(
-            "[handle_file_string] Error creating embedding: {}".format(e))
+        logging.error(f"[handle_file_string] Error creating embedding: {e}")
         raise e
 
     # Get the vectors array of triples: file_chunk_id, embedding, metadata for each embedding
@@ -96,8 +90,7 @@ def handle_file_string(filename, session_id, file_body_string, pinecone_index, t
         vectors.append(
             (id, embedding, {"filename": filename, "file_chunk_index": i}))
 
-        logging.info(
-            "[handle_file_string] Text chunk {}: {}".format(i, text_chunk))
+        logging.info(f"[handle_file_string] Text chunk {i}: {text_chunk}")
 
     # Split the vectors array into smaller batches of max length 2000
     batch_size = MAX_PINECONE_VECTORS_TO_UPSERT_PATCH_SIZE
@@ -110,10 +103,12 @@ def handle_file_string(filename, session_id, file_body_string, pinecone_index, t
                 vectors=batch, namespace=session_id)
 
             logging.info(
-                "[handle_file_string] Upserted batch of embeddings for {}".format(filename))
+                f"[handle_file_string] Upserted batch of embeddings for {filename}"
+            )
         except Exception as e:
             logging.error(
-                "[handle_file_string] Error upserting batch of embeddings to Pinecone: {}".format(e))
+                f"[handle_file_string] Error upserting batch of embeddings to Pinecone: {e}"
+            )
             raise e
 
 # Compute the column-wise average of a list of lists
@@ -121,10 +116,9 @@ def get_col_average_from_list_of_lists(list_of_lists):
     """Return the average of each column in a list of lists."""
     if len(list_of_lists) == 1:
         return list_of_lists[0]
-    else:
-        list_of_lists_array = array(list_of_lists)
-        average_embedding = average(list_of_lists_array, axis=0)
-        return average_embedding.tolist()
+    list_of_lists_array = array(list_of_lists)
+    average_embedding = average(list_of_lists_array, axis=0)
+    return average_embedding.tolist()
 
 # Create embeddings for a text using a tokenizer and an OpenAI engine
 def create_embeddings_for_text(text, tokenizer):
